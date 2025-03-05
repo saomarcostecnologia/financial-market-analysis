@@ -1,0 +1,10 @@
+pandas
+numpy
+boto3
+yfinance
+alpha_vantage
+requests
+python-dotenv
+aws-cdk-lib
+pylint
+pytest

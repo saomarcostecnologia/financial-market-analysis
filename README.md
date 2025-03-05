@@ -1,2 +1,3 @@
-# financial-market-analysis
-Projeto Data Masters - Pipeline de Engenharia de Dados.
+# Financial Market Analysis
+
+Projeto de análise de dados do mercado financeiro.
