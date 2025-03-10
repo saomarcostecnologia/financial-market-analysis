@@ -1,5 +1,4 @@
-# Em src/infrastructure/config/settings.py
-# Atualizar para o formato correto com base no seu .env.example
+# src/infrastructure/config/settings.py
 import os
 from dotenv import load_dotenv
 
@@ -10,7 +9,7 @@ class Settings:
     """Configurações da aplicação."""
     
     # AWS
-    AWS_REGION = os.getenv("AWS_REGION", "sa-east-1")
+    AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
     S3_DATA_BUCKET = os.getenv("AWS_BUCKET_NAME", "financial-market-data")
     
     # DynamoDB
@@ -19,6 +18,7 @@ class Settings:
     
     # API Keys
     ALPHA_VANTAGE_API_KEY_PARAM = os.getenv("ALPHA_VANTAGE_API_KEY_PARAM", "/financial-market/alphavantage/api-key")
+    ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY", "demo")
     
     # Ambiente
     ENVIRONMENT = os.getenv("ENVIRONMENT", "development")

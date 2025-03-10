@@ -1,9 +1,21 @@
+# src/domain/entities/market_data.py
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict, Any, Optional
+
+
+@dataclass
 class MarketData:
-    def __init__(self, stock_symbol, timestamp, open_price, high, low, close, volume):
-        self.stock_symbol = stock_symbol
+    """Entity representing market data from various sources."""
+    source_id: str
+    data_type: str
+    timestamp: datetime
+    data: Dict[str, Any]
+    metadata: Optional[Dict[str, Any]] = None
+
+    def __init__(self, source_id: str, data_type: str, timestamp: datetime, data: Dict[str, Any], metadata: Optional[Dict[str, Any]] = None):
+        self.source_id = source_id
+        self.data_type = data_type
         self.timestamp = timestamp
-        self.open_price = open_price
-        self.high = high
-        self.low = low
-        self.close = close
-        self.volume = volume
+        self.data = data
+        self.metadata = metadata
