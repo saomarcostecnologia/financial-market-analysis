@@ -1,10 +1,23 @@
-pandas
-numpy
-boto3
-yfinance
-alpha_vantage
-requests
-python-dotenv
-aws-cdk-lib
-pylint
-pytest
+# Essenciais para o núcleo do projeto
+pandas>=2.0.0
+numpy>=1.20.0
+pyarrow>=10.0.0
+pyspark>=3.4.0
+findspark>=2.0.0
+
+# Serviços AWS (versões mais relaxadas)
+boto3>=1.26.0
+botocore>=1.29.0
+requests>=2.28.0
+
+# APIs de dados financeiros
+yfinance>=0.2.18
+alpha_vantage>=2.3.0
+
+# Utilitários
+python-dotenv>=0.21.0
+tqdm>=4.64.0
+
+# Teste
+pytest>=7.3.1
+pylint>=2.17.0

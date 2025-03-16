@@ -20,7 +20,7 @@ class S3StockRepository(StockRepository):
     def __init__(self, settings: Settings, s3_client=None):
         self.settings = settings
         self.logger = logging.getLogger(__name__)
-        self.s3_client = s3_client or boto3.client('s3')
+        self.s3_client = s3_client or boto3.client('s3', region_name=settings.AWS_REGION)
         self.bucket_name = settings.S3_DATA_BUCKET
     
     def save_stock(self, stock: Stock) -> None:

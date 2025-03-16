@@ -18,7 +18,7 @@ class YahooFinanceAdapter(FinancialDataService):
     def __init__(self, settings: Settings, ssm_client=None):
         self.settings = settings
         self.logger = logging.getLogger(__name__)
-        self.ssm_client = ssm_client or boto3.client('ssm')
+        self.ssm_client = ssm_client or boto3.client('ssm', region_name=settings.AWS_REGION)
     
     def get_stock_historical_prices(self, ticker: str, start_date: datetime, end_date: datetime) -> List[StockPrice]:
         """Retrieve historical stock prices from Yahoo Finance."""

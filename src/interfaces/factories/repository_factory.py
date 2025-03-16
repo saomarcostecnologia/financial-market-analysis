@@ -6,7 +6,11 @@ from src.infrastructure.adapters.alpha_vantage_adapter import AlphaVantageAdapte
 from src.infrastructure.services.aws_observability_service import AWSObservabilityService
 from src.infrastructure.services.simple_data_masking_service import SimpleDataMaskingService
 from src.infrastructure.services.pandas_data_processing_service import PandasDataProcessingService
+from src.infrastructure.services.spark_data_processing_service import SparkDataProcessingService
 from src.infrastructure.config.settings import Settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RepositoryFactory:
     """Factory for creating repository and service instances."""
@@ -48,12 +52,21 @@ class RepositoryFactory:
             return YahooFinanceAdapter(settings)
     
     @staticmethod
-    def create_data_processing_service(service_type='pandas'):
+    def create_data_processing_service(service_type='spark'):
         """Create a data processing service instance."""
-        if service_type == 'pandas':
-            return PandasDataProcessingService()
-        else:
-            # Default para a implementação pandas
+        logger.info(f"Criando serviço de processamento do tipo: {service_type}")
+        try:
+            if service_type == 'pandas':
+                return PandasDataProcessingService()
+            elif service_type == 'spark':
+                return SparkDataProcessingService()
+            else:
+                # O padrão agora é Spark para melhor escalabilidade
+                logger.warning(f"Tipo de serviço '{service_type}' desconhecido, usando Spark como padrão")
+                return SparkDataProcessingService()
+        except Exception as e:
+            logger.error(f"Erro ao criar serviço de processamento {service_type}: {str(e)}")
+            logger.warning("Retornando para implementação Pandas devido a erro na inicialização do Spark")
             return PandasDataProcessingService()
     
     @staticmethod
