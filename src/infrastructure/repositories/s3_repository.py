@@ -167,8 +167,17 @@ class S3StockRepository(StockRepository):
                         buffer = io.BytesIO(file_response['Body'].read())
                         df = pd.read_parquet(buffer)
                         
+                        # Normalize timezone information
+                        if 'timestamp' in df.columns:
+                            # Convert datetime64 with timezone to timezone-naive datetime
+                            df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
+                        
+                        # Ensure start_date and end_date are timezone-naive
+                        naive_start_date = start_date.replace(tzinfo=None)
+                        naive_end_date = end_date.replace(tzinfo=None)
+                        
                         # Filter by date range
-                        df = df[(df['timestamp'] >= start_date) & (df['timestamp'] <= end_date)]
+                        df = df[(df['timestamp'] >= naive_start_date) & (df['timestamp'] <= naive_end_date)]
                         
                         # Convert to StockPrice entities
                         for _, row in df.iterrows():
@@ -379,34 +388,54 @@ class DynamoDBStockRepository(StockRepository):
             raise
     
     def save_prices(self, ticker: str, prices: List[StockPrice]) -> None:
-        """Save historical prices for a stock to DynamoDB."""
+        """Save historical prices for a stock to S3 in Parquet format."""
         try:
             if not prices:
                 self.logger.warning(f"No prices to save for {ticker}")
                 return
             
-            # Use batch write for efficiency
-            with self.prices_table.batch_writer() as batch:
-                for price in prices:
-                    item = {
-                        "ticker": ticker,
-                        "timestamp": price.timestamp.isoformat(),
-                        "open": decimal.Decimal(str(price.open)),
-                        "high": decimal.Decimal(str(price.high)),
-                        "low": decimal.Decimal(str(price.low)),
-                        "close": decimal.Decimal(str(price.close)),
-                        "volume": price.volume
-                    }
+            # Convert to DataFrame for Parquet serialization
+            data = []
+            for price in prices:
+                # Ensure timestamp is timezone-naive
+                timestamp = price.timestamp
+                if timestamp.tzinfo is not None:
+                    timestamp = timestamp.replace(tzinfo=None)
                     
-                    if price.adjusted_close is not None:
-                        item["adjusted_close"] = decimal.Decimal(str(price.adjusted_close))
-                    
-                    batch.put_item(Item=item)
+                data.append({
+                    "timestamp": timestamp,
+                    "open": price.open,
+                    "high": price.high,
+                    "low": price.low,
+                    "close": price.close,
+                    "volume": price.volume,
+                    "adjusted_close": price.adjusted_close
+                })
             
-            self.logger.info(f"Saved {len(prices)} price points for {ticker} to DynamoDB")
+            df = pd.DataFrame(data)
+            
+            # Determine time range for file naming
+            min_date = min(prices, key=lambda p: p.timestamp).timestamp.date()
+            max_date = max(prices, key=lambda p: p.timestamp).timestamp.date()
+            
+            # Create key with partitioning
+            key = f"stocks/{ticker}/prices/year={min_date.year}/month={min_date.month:02d}/prices_{min_date}_{max_date}.parquet"
+            
+            # Convert DataFrame to Parquet and save to S3
+            buffer = io.BytesIO()
+            df.to_parquet(buffer, index=False)
+            buffer.seek(0)
+            
+            self.s3_client.put_object(
+                Bucket=self.bucket_name,
+                Key=key,
+                Body=buffer.getvalue()
+            )
+            
+            self.logger.info(f"Saved {len(prices)} price points for {ticker} to S3 from {min_date} to {max_date}")
             
         except Exception as e:
-            self.logger.error(f"Error saving prices for {ticker} to DynamoDB: {str(e)}")
+            self.logger.error(f"Error saving prices for {ticker} to S3: {str(e)}")
             raise
     
     def get_prices(self, ticker: str, start_date: datetime, end_date: datetime) -> List[StockPrice]:
