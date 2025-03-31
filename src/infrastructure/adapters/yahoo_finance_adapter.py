@@ -15,14 +15,23 @@ from src.infrastructure.config.settings import Settings
 class YahooFinanceAdapter(FinancialDataService):
     """Adapter for Yahoo Finance API."""
     
-    def __init__(self, settings: Settings, ssm_client=None):
+    def __init__(self, settings: Settings, ssm_client=None, cache_service=None):
         self.settings = settings
         self.logger = logging.getLogger(__name__)
         self.ssm_client = ssm_client or boto3.client('ssm', region_name=settings.AWS_REGION)
+        self.cache = cache_service or DataCacheService(ttl_minutes=60)
     
     def get_stock_historical_prices(self, ticker: str, start_date: datetime, end_date: datetime) -> List[StockPrice]:
         """Retrieve historical stock prices from Yahoo Finance."""
         try:
+            self.logger.info(f"Fetching historical data for {ticker} from {start_date} to {end_date}")
+            cache_key = f"yahoo_prices_{ticker}_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}"
+
+            cached_data = self.cache.get(cache_key)
+            if cached_data:
+                self.logger.info(f"Using cached data for {ticker} from {start_date} to {end_date}")
+                return cached_data
+            
             self.logger.info(f"Fetching historical data for {ticker} from {start_date} to {end_date}")
             
             # Get data from yfinance
@@ -43,6 +52,7 @@ class YahooFinanceAdapter(FinancialDataService):
                 )
                 prices.append(price)
             
+            self.cache.set(cache_key, prices)
             self.logger.info(f"Retrieved {len(prices)} price points for {ticker}")
             return prices
             
