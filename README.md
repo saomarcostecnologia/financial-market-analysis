@@ -6,64 +6,74 @@ Uma solução completa de engenharia de dados para análise de mercado financeir
 
 Este projeto implementa um pipeline completo de engenharia de dados para mercado financeiro, incluindo:
 
-- Extração de dados de múltiplas fontes (Yahoo Finance, Alpha Vantage)
-- Processamento e transformação de dados (indicadores técnicos, análises)
-- Armazenamento de dados em múltiplas camadas (brutos, processados, analíticos)
-- Observabilidade e monitoramento
-- Segurança e mascaramento de dados
-- Infraestrutura escalável na AWS
+- **Extração** de dados de múltiplas fontes (Yahoo Finance, Alpha Vantage)
+- **Transformação** e processamento de dados (indicadores técnicos, análises)
+- **Armazenamento** de dados em múltiplas camadas (Bronze, Prata, Ouro)
+- **Observabilidade** e monitoramento
+- **Segurança** e mascaramento de dados
 
-A arquitetura segue os princípios da Arquitetura Limpa (Clean Architecture) com clara separação de preocupações e regras de dependência, tornando o sistema flexível, testável e de fácil manutenção.
+A arquitetura segue os princípios da **Arquitetura Limpa (Clean Architecture)** com clara separação de preocupações e regras de dependência, tornando o sistema flexível, testável e de fácil manutenção.
 
 ## Arquitetura
 
+### Arquitetura de Software (Clean Architecture)
+
 O projeto está organizado em camadas de acordo com a Arquitetura Limpa:
 
-### Camada de Domínio
+1. **Camada de Domínio**: Contém regras de negócio e entidades que são independentes de sistemas externos
+   - `src/domain/entities/`: Entidades de negócio principais (Stock, StockPrice, etc.)
+   - `src/domain/interfaces/`: Interfaces abstratas para repositórios e serviços
+   - `src/domain/value_objects/`: Objetos de valor usados no domínio
 
-Contém regras de negócio e entidades que são independentes de sistemas externos.
+2. **Camada de Aplicação**: Contém casos de uso específicos da aplicação
+   - `src/application/use_cases/`: Casos de uso de negócio (Extract, Transform, Load, Bronze, Silver, Gold)
 
-- `src/domain/entities/`: Entidades de negócio principais (Ação, PreçoAção, DadosMercado)
-- `src/domain/interfaces/`: Interfaces abstratas para repositórios e serviços
-- `src/domain/value_objects/`: Objetos de valor usados no domínio
+3. **Camada de Infraestrutura**: Contém adaptadores para frameworks externos e ferramentas
+   - `src/infrastructure/adapters/`: Adaptadores para serviços externos (Yahoo Finance, Alpha Vantage)
+   - `src/infrastructure/repositories/`: Implementações de repositórios (S3, DynamoDB)
+   - `src/infrastructure/services/`: Implementação de serviços
+   - `src/infrastructure/config/`: Configuração e ajustes
 
-### Camada de Aplicação
+4. **Camada de Interfaces**: Contém componentes que interagem com sistemas externos
+   - `src/interfaces/api/`: API Web e rotas
+   - `src/interfaces/factories/`: Classes de fábrica para criação de instâncias
+   - `src/interfaces/jobs/`: Trabalhos agendados
 
-Contém regras de negócio específicas da aplicação, encapsulando e implementando casos de uso.
+### Arquitetura de Dados (Lakehouse)
 
-- `src/application/use_cases/`: Casos de uso de negócio (Extração, Transformação, Carregamento)
-- `src/application/services/`: Serviços de aplicação que orquestram múltiplos casos de uso
+O projeto implementa uma arquitetura Lakehouse moderna com três camadas:
 
-### Camada de Infraestrutura
+1. **Camada Bronze (Raw)**
+   - Dados brutos extraídos das fontes sem modificação
+   - Preserva dado original para auditoria e reprocessamento
+   - Formato: Parquet particionado por data
 
-Contém adaptadores para frameworks externos, ferramentas e serviços.
+2. **Camada Prata (Processed)**
+   - Dados limpos, validados e enriquecidos
+   - Indicadores técnicos calculados
+   - Formato: Parquet otimizado para processamento
 
-- `src/infrastructure/adapters/`: Adaptadores para serviços externos (Yahoo Finance, Alpha Vantage)
-- `src/infrastructure/repositories/`: Implementações de repositórios de dados (S3, DynamoDB)
-- `src/infrastructure/services/`: Implementação de serviços de domínio
-- `src/infrastructure/config/`: Configuração e ajustes
+3. **Camada Ouro (Analytics)**
+   - Dados agregados e prontos para consumo
+   - Métricas de negócio, estatísticas e KPIs
+   - Formato: Parquet/JSON otimizado para consulta
 
-### Camada de Interfaces
+### Infraestrutura AWS
 
-Contém componentes que interagem com sistemas externos ou usuários.
-
-- `src/interfaces/api/`: API Web e rotas
-- `src/interfaces/factories/`: Classes de fábrica para criação de instâncias
-- `src/interfaces/jobs/`: Trabalhos agendados e processamento em lote
-
-### Infraestrutura como Código
-
-Infraestrutura AWS definida como código usando AWS CDK.
-
-- `infrastructure/cdk/`: Código CDK para implantação de infraestrutura
+- **Amazon S3**: Armazenamento principal (Data Lake)
+- **Amazon DynamoDB**: Metadados e acesso rápido
+- **AWS Lambda**: Processamento em tempo real
+- **AWS CDK**: Infraestrutura como código
 
 ## Fluxo de Dados
 
-O processo ETL (Extração, Transformação, Carregamento) segue estas etapas:
+![Financial Data Pipeline](docs/images/pipeline_flow.png)
 
-1. **Extração**: Dados financeiros são extraídos de fontes externas como Yahoo Finance ou Alpha Vantage
-2. **Transformação**: Dados brutos são processados para calcular indicadores técnicos, estatísticas e tendências
-3. **Carregamento**: Dados processados são armazenados no repositório apropriado, com informações sensíveis mascaradas se necessário
+1. **Extração**: Dados financeiros são extraídos de fontes como Yahoo Finance ou Alpha Vantage
+2. **Camada Bronze**: Os dados brutos são armazenados sem modificações
+3. **Camada Prata**: Dados são limpos, padronizados e enriquecidos com indicadores técnicos
+4. **Camada Ouro**: Dados são agregados em visões analíticas (diárias, mensais, estatísticas)
+5. **Consumo**: Dashboards, análises e modelos de ML podem consumir dados de qualquer camada
 
 ## Começando
 
@@ -71,13 +81,14 @@ O processo ETL (Extração, Transformação, Carregamento) segue estas etapas:
 
 - Python 3.11+
 - Conta AWS e credenciais configuradas
-- Node.js 14+ (para CDK)
+- Java 8+ (para Apache Spark)
+- Hadoop binários (para Windows)
 
 ### Configuração do Ambiente
 
 1. Clone o repositório
    ```
-   git clone https://github.com/seuusuario/financial-market-data.git
+   git clone https://github.com/seu-usuario/financial-market-data.git
    cd financial-market-data
    ```
 
@@ -98,19 +109,26 @@ O processo ETL (Extração, Transformação, Carregamento) segue estas etapas:
    # Edite o arquivo .env com suas configurações
    ```
 
-### Executando o Script de Teste ETL
+### Executando o Pipeline ETL
 
-Teste o pipeline ETL com o script fornecido:
+Teste o pipeline ETL tradicional:
 
 ```
 python scripts/test_stock_etl.py --ticker AAPL --days 30
 ```
 
+Teste o pipeline Lakehouse (Bronze, Prata, Ouro):
+
+```
+python scripts/test_lakehouse.py --ticker AAPL --days 30
+```
+
 Opções:
 - `--ticker`: Símbolo da ação (padrão: AAPL)
 - `--days`: Número de dias de dados históricos (padrão: 30)
-- `--mask`: Ativar mascaramento de dados
-- `--repository`: Tipo de repositório ('s3' ou 'dynamo', padrão: 's3')
+- `--tickers`: Lista de múltiplos tickers separados por vírgula
+- `--use-spark`: Usar Spark para processamento (padrão: Pandas)
+- `--verbose`: Ativar logging detalhado
 
 ### Implantando a Infraestrutura
 
@@ -125,70 +143,47 @@ Opções:
    npx cdk deploy
    ```
 
+## Componentes Principais
+
+### Casos de Uso
+
+- **ExtractStockDataUseCase**: Extrai dados históricos de ações
+- **TransformStockDataUseCase**: Calcula indicadores técnicos
+- **LoadStockDataUseCase**: Armazena dados processados
+- **LoadToBronzeLayerUseCase**: Carrega dados na camada Bronze
+- **ProcessToSilverLayerUseCase**: Processa dados para camada Prata
+- **AggregateToGoldLayerUseCase**: Agrega dados para camada Ouro
+
+### Serviços
+
+- **YahooFinanceAdapter**: Interface com Yahoo Finance API
+- **AlphaVantageAdapter**: Interface com Alpha Vantage API
+- **PandasDataProcessingService**: Processamento com Pandas
+- **SparkDataProcessingService**: Processamento distribuído com Spark
+- **AWSObservabilityService**: Monitoramento e observabilidade
+- **SimpleDataMaskingService**: Mascaramento de dados sensíveis
+
+### Repositórios
+
+- **S3StockRepository**: Armazenamento de dados em S3
+- **DynamoDBStockRepository**: Armazenamento em DynamoDB
+- **S3MarketDataRepository**: Armazenamento de dados de mercado
+
 ## Observabilidade e Monitoramento
 
-O projeto inclui uma solução abrangente de observabilidade usando AWS CloudWatch:
+O projeto inclui recursos abrangentes de observabilidade:
 
-- **Logs**: Logs detalhados para todos os processos ETL e erros
-- **Métricas**: Métricas de desempenho para processos de extração, transformação e carregamento
-- **Rastreamento**: Rastreamento distribuído para acompanhar os dados através do pipeline
-- **Alarmes**: Alarmes configuráveis para erros e problemas de desempenho
+- **Logs**: Logs detalhados para todos os processos
+- **Métricas**: Métricas de desempenho para todas as etapas
+- **Rastreamento**: Rastreamento das operações através do pipeline
 
 ## Segurança e Proteção de Dados
 
-Recursos de proteção de dados incluem:
+Recursos de proteção de dados:
 
-- Mascaramento de dados para informações sensíveis
-- Armazenamento seguro com criptografia
-- Controle de acesso via papéis IAM
-- Autenticação e autorização de API
-
-## Diretrizes de Desenvolvimento
-
-### Adicionando uma Nova Fonte de Dados
-
-1. Crie um novo adaptador em `src/infrastructure/adapters/` que implementa a interface de domínio apropriada
-2. Atualize a fábrica de repositórios para incluir o novo adaptador
-3. Teste com o script ETL
-
-### Implementando um Novo Caso de Uso
-
-1. Defina o caso de uso em `src/application/use_cases/`
-2. Atualize ou crie entidades de domínio apropriadas, se necessário
-3. Implemente quaisquer serviços de infraestrutura ou adaptadores necessários
-4. Adicione testes no diretório `tests/`
-
-## Estrutura do Projeto
-
-```
-financial-market-data/
-├── src/
-│   ├── domain/            # Camada de domínio
-│   │   ├── entities/      # Entidades de negócio
-│   │   ├── interfaces/    # Interfaces abstratas
-│   │   ├── value_objects/ # Objetos de valor
-│   ├── application/       # Camada de aplicação
-│   │   ├── services/      # Serviços de aplicação
-│   │   ├── use_cases/     # Casos de uso de negócio
-│   ├── infrastructure/    # Camada de infraestrutura
-│   │   ├── adapters/      # Adaptadores externos
-│   │   ├── config/        # Configuração
-│   │   ├── repositories/  # Implementações de repositórios
-│   │   ├── services/      # Implementações de serviços
-│   ├── interfaces/        # Camada de interface
-│       ├── api/           # API Web
-│       ├── factories/     # Classes de fábrica
-│       ├── jobs/          # Trabalhos agendados
-├── tests/                 # Código de teste
-│   ├── integration/       # Testes de integração
-│   ├── unit/              # Testes unitários
-├── scripts/               # Scripts utilitários
-├── infrastructure/        # Infraestrutura como código
-│   ├── cdk/               # Código AWS CDK
-├── .env.example           # Exemplo de variáveis de ambiente
-├── requirements.txt       # Dependências Python
-├── README.md              # Este arquivo
-```
+- **Mascaramento**: Proteção de dados sensíveis
+- **Criptografia**: Armazenamento seguro em repouso
+- **Controle de Acesso**: Permissões granulares via IAM
 
 ## Testes
 
@@ -198,13 +193,24 @@ Execute os testes com pytest:
 pytest
 ```
 
-## Contribuindo
+## Estrutura do Projeto
 
-1. Faça um fork do repositório
-2. Crie um branch de feature: `git checkout -b feature/minha-feature`
-3. Faça commit das suas alterações: `git commit -am 'Adiciona minha feature'`
-4. Faça push para o branch: `git push origin feature/minha-feature`
-5. Envie um pull request
+```
+financial-market-data/
+├── src/
+│   ├── domain/            # Camada de domínio
+│   ├── application/       # Camada de aplicação
+│   ├── infrastructure/    # Camada de infraestrutura
+│   ├── interfaces/        # Camada de interface
+├── tests/                 # Código de teste
+├── scripts/               # Scripts utilitários
+├── infrastructure/        # Infraestrutura como código
+│   ├── cdk/               # Código AWS CDK
+├── docs/                  # Documentação
+├── .env.example           # Exemplo de variáveis de ambiente
+├── requirements.txt       # Dependências Python
+├── README.md              # Este arquivo
+```
 
 ## Licença
 
