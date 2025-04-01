@@ -9,7 +9,7 @@ class Settings:
     """Configurações da aplicação."""
     
     # AWS
-    AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+    AWS_REGION = os.getenv("AWS_REGION", "sa-east-1")
     S3_DATA_BUCKET = os.getenv("AWS_BUCKET_NAME", "financial-market-data-dev-779618327552")
     
     # DynamoDB

@@ -22,7 +22,7 @@ class LoadToBronzeLayerUseCase:
         self.logger = logging.getLogger(__name__)
         self.bucket_name = bucket_name
         self.observability_service = observability_service
-        self.s3_client = s3_client or boto3.client('s3')
+        self.s3_client = s3_client or boto3.client('s3', region_name="sa-east-1")
     
     def load_stock_data(self, ticker: str, data_df: pd.DataFrame, data_type: str, timestamp: datetime = None) -> str:
         """

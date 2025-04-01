@@ -5,6 +5,7 @@ import sys
 import os
 import time
 from datetime import datetime, timedelta
+import boto3
 
 # Adiciona o diretório raiz do projeto ao Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -20,6 +21,20 @@ logging.basicConfig(
 
 logger = logging.getLogger("full_pipeline_test")
 
+
+# Teste de conexão com AWS
+try:
+    s3 = boto3.client('s3', region_name='sa-east-1')
+    buckets = s3.list_buckets()
+    print(f"Conexão com AWS bem-sucedida. Buckets: {[b['Name'] for b in buckets['Buckets']]}")
+    print(f"Verificando bucket específico...")
+    s3.head_bucket(Bucket='financial-market-data-dev-779618327552')
+    print(f"Bucket encontrado com sucesso!")
+except Exception as e:
+    print(f"Erro ao conectar com AWS ou verificar bucket: {str(e)}")
+
+
+    
 def parse_args():
     """Analisa os argumentos de linha de comando."""
     parser = argparse.ArgumentParser(description='Teste do fluxo completo do pipeline Lakehouse.')
