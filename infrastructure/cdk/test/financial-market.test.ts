@@ -1,3 +1,4 @@
+// test/financial-market.test.ts (atualizado)
 import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { FinancialMarketStack } from '../lib/financial-market-stack';
@@ -98,7 +99,7 @@ describe('FinancialMarketStack', () => {
     // Verifica se a função Lambda foi criada
     template.hasResourceProperties('AWS::Lambda::Function', {
       FunctionName: 'financial-market-extractor-dev',
-      Runtime: 'python3.9'
+      Runtime: 'python3.11'  // Atualizado para Python 3.11
     });
   });
 });
