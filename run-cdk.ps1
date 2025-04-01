@@ -45,7 +45,10 @@ if ($envContent) {
     Write-Host "AWS_ACCESS_KEY_ID: $($env:AWS_ACCESS_KEY_ID.Substring(0, 4))..." -ForegroundColor Cyan
     
     # Executa o comando CDK destroy
-    npx cdk destroy --context environment=$env:ENVIRONMENT
+    #npx cdk destroy --context environment=$env:ENVIRONMENT
+    
+    #Executa o comando CDK Deploy
+    npx cdk deploy --context environment=$env:ENVIRONMENT
 } else {
     Write-Host "Arquivo .env não encontrado. Verifique se o arquivo existe na raiz do projeto." -ForegroundColor Red
 }
