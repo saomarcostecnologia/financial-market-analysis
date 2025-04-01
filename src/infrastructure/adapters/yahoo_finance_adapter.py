@@ -7,10 +7,10 @@ from typing import List, Dict, Any, Optional
 import boto3
 import yfinance as yf
 
+from src.infrastructure.services.data_cache_service import DataCacheService
 from src.domain.entities.stock import StockPrice
 from src.domain.interfaces.services import FinancialDataService
 from src.infrastructure.config.settings import Settings
-from src.infrastructure.services.data_cache_service import DataCacheService
 
 class YahooFinanceAdapter(FinancialDataService):
     """Adapter for Yahoo Finance API."""
