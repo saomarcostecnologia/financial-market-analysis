@@ -8,7 +8,7 @@ const app = new cdk.App();
 const environment = app.node.tryGetContext('environment') || 'dev';
 
 // Configurações específicas para cada ambiente
-const envConfigs = {
+const envConfigs: { [key: string]: any } = {
   dev: {
     env: { 
       account: process.env.CDK_DEFAULT_ACCOUNT, 

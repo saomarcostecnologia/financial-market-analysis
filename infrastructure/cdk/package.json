@@ -1,8 +1,8 @@
 {
-  "name": "cdk-new",
+  "name": "financial-market-infra",
   "version": "0.1.0",
   "bin": {
-    "cdk-new": "bin/cdk-new.js"
+    "financial-market-infra": "bin/financial-market.js"
   },
   "scripts": {
     "build": "tsc",
