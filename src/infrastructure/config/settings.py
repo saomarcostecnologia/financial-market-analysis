@@ -10,7 +10,7 @@ class Settings:
     
     # AWS
     AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-    S3_DATA_BUCKET = os.getenv("AWS_BUCKET_NAME", "financial-market-data")
+    S3_DATA_BUCKET = os.getenv("AWS_BUCKET_NAME", "financial-market-data-dev-779618327552")
     
     # DynamoDB
     DYNAMODB_STOCKS_TABLE = os.getenv("DYNAMODB_STOCKS_TABLE", "financial_stocks")
