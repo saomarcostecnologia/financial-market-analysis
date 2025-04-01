@@ -276,12 +276,3 @@ class DynamoDBStockRepository(StockRepository):
         except Exception as e:
             self.logger.error(f"Error getting prices for {ticker} from DynamoDB: {str(e)}")
             raise
-
-
-class DynamoRepository:
-    """Legacy class for backward compatibility."""
-    def __init__(self, table_name, region_name='us-east-1'):
-        self.logger = logging.getLogger(__name__)
-        self.logger.warning("DynamoRepository is deprecated, use DynamoDBStockRepository instead")
-        settings = Settings()
-        self.stock_repository = DynamoDBStockRepository(settings)
