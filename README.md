@@ -76,6 +76,8 @@ O projeto implementa uma arquitetura Lakehouse moderna com três camadas:
 - Conta AWS e credenciais configuradas
 - Java 8+ (para Apache Spark)
 - Node.js 14+ (para AWS CDK)
+- Mínimo de 4GB de RAM para processamento com Pandas
+- Recomendado 8GB+ de RAM para processamento com Spark
 
 ### Configuração Rápida
 

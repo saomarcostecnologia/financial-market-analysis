@@ -1,20 +1,27 @@
-# Guia de Configuração do Projeto
+# Instruções de Configuração
 
-Este documento fornece instruções detalhadas para configurar o ambiente de desenvolvimento para o projeto de Engenharia de Dados para Mercado Financeiro.
+Este documento fornece instruções detalhadas para configurar o ambiente de desenvolvimento e execução para o projeto Financial Market Analysis.
 
-## Pré-requisitos
+## Requisitos do Sistema
 
-### Requisitos de Software
+### Software Necessário
 
-- **Python 3.11+**
-- **AWS CLI** instalado e configurado
-- **Node.js 14+** (para AWS CDK)
-- **Java 8+** (para Apache Spark)
-- **Hadoop** (opcional, para execução local do Spark em Windows)
+- **Python**: Versão 3.11 ou superior
+- **Node.js**: Versão 14 ou superior (para AWS CDK)
+- **Java**: Versão 8 ou superior (para Apache Spark)
+- **AWS CLI**: Versão 2 ou superior, configurada com credenciais adequadas
+- **Git**: Para controle de versão
 
-### Requisitos de Conta
+### Requisitos de Hardware (Recomendados)
 
-- Conta AWS com permissões para os seguintes serviços:
+- **CPU**: 4+ cores para processamento de dados em larga escala
+- **RAM**: Mínimo 8GB (16GB+ recomendado para Spark)
+- **Armazenamento**: 20GB+ de espaço livre
+
+### Conta AWS
+
+- Conta AWS ativa
+- Usuário IAM com permissões para:
   - S3
   - DynamoDB
   - Lambda
@@ -22,9 +29,9 @@ Este documento fornece instruções detalhadas para configurar o ambiente de des
   - CloudFormation
   - IAM
 
-## Instalação
+## Instalação e Configuração
 
-### 1. Clone o Repositório
+### 1. Clone do Repositório
 
 ```bash
 git clone https://github.com/seu-usuario/financial-market-analysis.git
@@ -36,13 +43,17 @@ cd financial-market-analysis
 #### Criação do Ambiente Virtual
 
 ```bash
-# Linux/macOS
+# Linux/MacOS
 python -m venv venv
 source venv/bin/activate
 
-# Windows
+# Windows (PowerShell)
 python -m venv venv
-venv\Scripts\activate
+.\venv\Scripts\Activate.ps1
+
+# Windows (Command Prompt)
+python -m venv venv
+.\venv\Scripts\activate.bat
 ```
 
 #### Instalação das Dependências
@@ -58,11 +69,36 @@ cd infrastructure/cdk
 npm install
 ```
 
-## Configuração
+### 4. Configuração do Apache Spark (Opcional)
 
-### 1. Arquivo de Variáveis de Ambiente
+Se você planeja usar o Apache Spark para processamento de dados:
 
-Crie um arquivo `.env` na raiz do projeto com base no `.env.example`:
+#### Linux/MacOS
+
+```bash
+# Configurar variável JAVA_HOME
+export JAVA_HOME=/path/to/your/java
+```
+
+#### Windows
+
+```powershell
+# Configurar variável JAVA_HOME no PowerShell
+$env:JAVA_HOME = "C:\path\to\your\java"
+
+# Ou no CMD
+set JAVA_HOME=C:\path\to\your\java
+```
+
+### 5. Configuração das Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto baseado no exemplo fornecido:
+
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas configurações:
 
 ```
 # AWS Credentials
@@ -77,129 +113,101 @@ LOG_LEVEL=INFO
 
 # Project Settings
 PROJECT_NAME=financial-market-analysis
+
+# API Keys (opcional)
+ALPHA_VANTAGE_API_KEY=sua_chave_alpha_vantage
 ```
 
-### 2. Configuração do Spark (Opcional para execução local)
+## Configuração das APIs Financeiras
 
-#### Linux/macOS
+### Yahoo Finance
+
+O Yahoo Finance não requer chave de API para uso básico, mas tem limitações de taxa de requisição.
+
+### Alpha Vantage (Opcional)
+
+1. Obtenha uma chave de API gratuita em [Alpha Vantage](https://www.alphavantage.co/support/#api-key)
+2. Adicione sua chave ao arquivo `.env` ou ao AWS Parameter Store
+
+## Configuração do Armazenamento
+
+### Opção 1: Usar S3 e DynamoDB Existentes
+
+Se você já possui buckets S3 e tabelas DynamoDB:
+
+1. Atualize o arquivo `.env` com os nomes dos recursos
+2. Certifique-se de que seu usuário IAM tem permissões adequadas
+
+### Opção 2: Provisionar Nova Infraestrutura
+
+Para criar nova infraestrutura:
 
 ```bash
-# Instale o PySpark via pip
-pip install pyspark
-```
-
-#### Windows
-
-Para Windows, é necessário configurar o Hadoop:
-
-1. Baixe o Hadoop a partir de https://hadoop.apache.org/releases.html
-2. Extraia para um diretório (ex: `C:\hadoop`)
-3. Defina a variável de ambiente `HADOOP_HOME` para apontar para este diretório
-4. Adicione `%HADOOP_HOME%\bin` ao PATH
-5. Copie os binários do winutils para `%HADOOP_HOME%\bin`
-
-### 3. Configuração de APIs Externas
-
-#### Alpha Vantage API
-
-1. Registre-se em https://www.alphavantage.co/support/#api-key
-2. Adicione a API key ao arquivo `.env`:
-
-```
-ALPHA_VANTAGE_API_KEY=sua_api_key_aqui
-```
-
-Ou, para maior segurança, armazene no AWS Parameter Store:
-
-```bash
-aws ssm put-parameter --name "/financial-market/alphavantage/api-key" --value "sua_api_key_aqui" --type SecureString
-```
-
-## Configuração de Camadas do Lambda
-
-Para preparar as camadas do Lambda:
-
-### Linux/macOS
-
-```bash
-bash scripts/prepare_lambda_layer.sh
-```
-
-### Windows
-
-```powershell
-.\scripts\prepare_lambda_layer.ps1
-```
-
-## Verificar Instalação
-
-Para verificar se tudo foi instalado corretamente:
-
-```bash
-# Teste do ambiente Python
-python -c "import pandas; import numpy; import boto3; print('Ambiente básico OK')"
-
-# Se você for usar Spark
-python -c "import findspark; findspark.init(); import pyspark; print('Spark OK')"
-
-# Teste do AWS CDK
 cd infrastructure/cdk
-npx cdk --version
+npx cdk bootstrap aws://ACCOUNT-NUMBER/REGION
+npx cdk deploy --context environment=dev
 ```
 
-## Execução Local
+## Testando a Configuração
 
-Para testar o pipeline localmente:
+### Verificar Conectividade AWS
 
 ```bash
-# Teste ETL básico
-python scripts/test_stock_etl.py --ticker AAPL --days 30
+python -c "import boto3; s3 = boto3.client('s3'); print(s3.list_buckets())"
+```
 
-# Teste Lakehouse
-python scripts/test_lakehouse.py --ticker AAPL --days 30
+### Verificar Extração de Dados
 
-# Pipeline completo (Bronze, Silver, Gold)
-python tests/e2e/pipeline/test_full_pipeline.py --ticker AAPL --days 30
+```bash
+python -c "import yfinance as yf; data = yf.download('AAPL', period='5d'); print(data.head())"
+```
+
+### Executar Teste End-to-End
+
+```bash
+python tests/e2e/pipeline/test_full_pipeline.py --ticker AAPL --days 7 --steps bronze
 ```
 
 ## Solução de Problemas
 
-### Problemas com PySpark
+### Problemas Comuns
 
-1. Verifique se o Java está instalado corretamente:
-   ```bash
-   java -version
-   ```
+#### Erro de Autenticação AWS
 
-2. Para Windows, certifique-se de que o HADOOP_HOME está configurado:
-   ```bash
-   echo %HADOOP_HOME%
-   ```
+```
+botocore.exceptions.ClientError: An error occurred (AccessDenied)
+```
 
-3. Se o Spark falhar, o sistema automaticamente usará o Pandas para processamento.
+**Solução**: Verifique suas credenciais AWS no arquivo `.env` ou nas variáveis de ambiente.
 
-### Problemas com AWS
+#### Problemas com Apache Spark
 
-1. Verifique suas credenciais:
-   ```bash
-   aws sts get-caller-identity
-   ```
+```
+Java gateway process exited before sending its port number
+```
 
-2. Verifique se o bucket S3 existe:
-   ```bash
-   aws s3 ls s3://seu-bucket-datalake
-   ```
+**Solução**: Verifique se o Java está instalado e configurado corretamente. Configure a variável JAVA_HOME.
 
-### Problemas com AWS CDK
+#### Erros de Importação de Módulos
 
-1. Reinstale as dependências:
-   ```bash
-   cd infrastructure/cdk
-   rm -rf node_modules
-   npm install
-   ```
+```
+ModuleNotFoundError: No module named 'src'
+```
 
-2. Verifique a versão do CDK:
-   ```bash
-   npx cdk --version
-   ```
+**Solução**: Certifique-se de estar na raiz do projeto ou adicione a raiz ao PYTHONPATH:
+
+```bash
+# Linux/MacOS
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+# Windows
+set PYTHONPATH=%PYTHONPATH%;%cd%
+```
+
+## Próximos Passos
+
+Após concluir a configuração:
+
+1. Consulte [docs/PIPELINE.md](PIPELINE.md) para entender o pipeline de dados
+2. Consulte [docs/AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md) para implantação em produção
+3. Experimente executar o pipeline completo com dados reais
