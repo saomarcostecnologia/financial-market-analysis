@@ -1,5 +1,11 @@
 # Welcome to your CDK TypeScript project
 
+
+# Nao esqueça de isntalar as dependencias de layers !
+
+# Instale as dependências na camada
+pip install -r layers/requirements.txt -t layers/python --upgrade
+
 This is a blank project for CDK development with TypeScript.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
