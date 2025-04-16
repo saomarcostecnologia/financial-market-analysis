@@ -34,7 +34,7 @@ Este documento fornece instruções detalhadas para configurar o ambiente de des
 ### 1. Clone do Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/financial-market-analysis.git
+git clone https://github.com/saomarcostecnologia/financial-market-analysis.git
 cd financial-market-analysis
 ```
 
