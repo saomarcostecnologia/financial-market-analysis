@@ -83,7 +83,7 @@ O projeto implementa uma arquitetura Lakehouse moderna com três camadas:
 
 1. Clone o repositório
    ```bash
-   git clone https://github.com/seu-usuario/financial-market-data.git
+   git clone https://github.com/saomarcostecnologia/financial-market-analysis.git
    cd financial-market-data
    ```
 
